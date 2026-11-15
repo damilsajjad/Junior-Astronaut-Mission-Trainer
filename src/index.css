@@ -1,0 +1,63 @@
+@import "tailwindcss";
+
+:root {
+  --bg-primary: #07111F;
+  --bg-panel: #0D1B2A;
+  --bg-panel-raised: #152A3E;
+  --accent-cyan: #37D6F4;
+  --accent-blue: #4388F5;
+  --accent-orange: #FF7A3D;
+  --status-green: #37D67A;
+  --status-amber: #FFB84D;
+  --status-red: #FF5B68;
+  --text-primary: #F4F7FB;
+  --text-secondary: #AAB8C8;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Custom sleek scrollbars matching dark mission-control theme */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(7, 17, 31, 0.6);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(55, 214, 244, 0.28);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(55, 214, 244, 0.5);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+.reduced-motion *, .reduced-motion *::before, .reduced-motion *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+}

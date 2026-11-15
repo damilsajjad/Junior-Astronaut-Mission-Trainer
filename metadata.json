@@ -1,0 +1,6 @@
+{
+  "name": "ORBITAL SURVIVAL: Astro-Cadet Mission Control",
+  "description": "A child-friendly 3D space survival and STEM mission trainer for Moon and Mars outposts. Manage life support, solve hands-on repair puzzles, and execute Plan A/B/C contingencies.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
