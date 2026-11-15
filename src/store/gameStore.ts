@@ -80,6 +80,8 @@ const DEFAULT_PROGRESS: SavedProgress = {
   lastDestination: 'mars',
   muted: false,
   volume: 0.7,
+  musicMuted: false,
+  musicVolume: 0.35,
   reducedMotion: false,
   lowGraphics: false,
   introWatchedMars: false,
@@ -406,7 +408,10 @@ export type GameStore = {
   setDifficulty: (diff: DifficultyMode) => void;
   setViewMode: (mode: ViewMode) => void;
   toggleMute: () => void;
+  toggleSfxMute: () => void;
   setAudioVolume: (volume: number) => void;
+  toggleMusicMute: () => void;
+  setMusicVolume: (volume: number) => void;
   toggleReducedMotion: () => void;
   toggleLowGraphics: () => void;
 
@@ -468,7 +473,12 @@ export type GameStore = {
 };
 
 const initialSaved = loadSavedProgress();
-setAudioConfig({ muted: initialSaved.muted, volume: initialSaved.volume ?? 0.7 });
+setAudioConfig({
+  muted: initialSaved.muted,
+  volume: initialSaved.volume ?? 0.7,
+  musicMuted: initialSaved.musicMuted ?? false,
+  musicVolume: initialSaved.musicVolume ?? 0.35,
+});
 const initialSavedMission = loadSavedMissionSnapshot();
 
 function syncTrendsFromPreview(state: GameStore): LiveTrends {
@@ -671,6 +681,22 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   toggleMute: () => {
     const prev = get().savedProgress;
+    const anyAudioOn = !prev.muted || !prev.musicMuted;
+    const nextMuted = anyAudioOn;
+    const updated = { ...prev, muted: nextMuted, musicMuted: nextMuted };
+    saveProgressToStorage(updated);
+    setAudioConfig({
+      muted: updated.muted,
+      volume: updated.volume,
+      musicMuted: updated.musicMuted,
+      musicVolume: updated.musicVolume,
+    });
+    syncAmbience(get().missionStatus === 'active', updated.muted, updated.volume);
+    set({ savedProgress: updated });
+  },
+
+  toggleSfxMute: () => {
+    const prev = get().savedProgress;
     const updated = { ...prev, muted: !prev.muted };
     saveProgressToStorage(updated);
     setAudioConfig({ muted: updated.muted, volume: updated.volume });
@@ -681,10 +707,41 @@ export const useGameStore = create<GameStore>((set, get) => ({
   setAudioVolume: (volume) => {
     const clamped = Math.max(0, Math.min(1, Math.round(volume * 100) / 100));
     const prev = get().savedProgress;
-    const updated = { ...prev, volume: clamped, muted: clamped <= 0 ? true : prev.muted };
+    const updated = {
+      ...prev,
+      volume: clamped,
+      muted: clamped <= 0 ? true : false,
+    };
     saveProgressToStorage(updated);
     setAudioConfig({ muted: updated.muted, volume: updated.volume });
     syncAmbience(get().missionStatus === 'active', updated.muted, updated.volume);
+    set({ savedProgress: updated });
+  },
+
+  toggleMusicMute: () => {
+    const prev = get().savedProgress;
+    const updated = { ...prev, musicMuted: !prev.musicMuted };
+    saveProgressToStorage(updated);
+    setAudioConfig({
+      musicMuted: updated.musicMuted,
+      musicVolume: updated.musicVolume,
+    });
+    set({ savedProgress: updated });
+  },
+
+  setMusicVolume: (volume) => {
+    const clamped = Math.max(0, Math.min(1, Math.round(volume * 100) / 100));
+    const prev = get().savedProgress;
+    const updated = {
+      ...prev,
+      musicVolume: clamped,
+      musicMuted: clamped <= 0 ? true : false,
+    };
+    saveProgressToStorage(updated);
+    setAudioConfig({
+      musicMuted: updated.musicMuted,
+      musicVolume: updated.musicVolume,
+    });
     set({ savedProgress: updated });
   },
 

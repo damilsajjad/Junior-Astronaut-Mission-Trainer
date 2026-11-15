@@ -283,6 +283,8 @@ export type SavedProgress = {
   lastDestination: Destination;
   muted: boolean;
   volume: number;
+  musicMuted: boolean;
+  musicVolume: number;
   reducedMotion: boolean;
   lowGraphics: boolean;
   introWatchedMars: boolean;

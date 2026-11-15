@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import CircuitPuzzle from './components/puzzles/CircuitPuzzle';
 import DiagnosticPuzzle from './components/puzzles/DiagnosticPuzzle';
 import FilterAdapterPuzzle from './components/puzzles/FilterAdapterPuzzle';
@@ -16,6 +17,7 @@ import ScienceSourcesModal from './components/ui/ScienceSourcesModal';
 import SettingsPauseModal from './components/ui/SettingsPauseModal';
 import StationInspectModal from './components/ui/StationInspectModal';
 import { useGameStore } from './store/gameStore';
+import { MusicTrack, syncMusic } from './utils/sound';
 
 export default function App() {
   const missionStatus = useGameStore((s) => s.missionStatus);
@@ -23,6 +25,23 @@ export default function App() {
   const activePuzzle = useGameStore((s) => s.activePuzzle);
   const puzzlePaused = useGameStore((s) => s.puzzlePaused);
   const reducedMotion = useGameStore((s) => s.savedProgress.reducedMotion);
+  const musicMuted = useGameStore((s) => s.savedProgress.musicMuted);
+  const musicVolume = useGameStore((s) => s.savedProgress.musicVolume);
+
+  useEffect(() => {
+    const isMissionStage =
+      missionStatus === 'active' ||
+      missionStatus === 'paused' ||
+      missionStatus === 'rescue-cinematic' ||
+      missionStatus === 'success' ||
+      missionStatus === 'safety-protocol';
+
+    const track: MusicTrack = isMissionStage ? 'mission' : 'menu';
+    syncMusic(track, {
+      musicMuted: musicMuted ?? false,
+      musicVolume: musicVolume ?? 0.35,
+    });
+  }, [missionStatus, musicMuted, musicVolume]);
 
   return (
     <div className={reducedMotion ? 'reduced-motion min-h-screen' : 'min-h-screen'}>

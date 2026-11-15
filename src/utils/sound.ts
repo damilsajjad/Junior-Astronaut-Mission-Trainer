@@ -42,9 +42,16 @@ export type SoundId =
   | 'inventory-close'
   | 'repair-tool';
 
+export type MusicTrack = 'off' | 'menu' | 'mission';
+
 let audioCtx: AudioContext | null = null;
 let noiseBuffer: AudioBuffer | null = null;
-let masterConfig = { muted: false, volume: 0.7 };
+let masterConfig = {
+  muted: false,
+  volume: 0.7,
+  musicMuted: false,
+  musicVolume: 0.35,
+};
 const lastPlayedAt: Record<string, number> = {};
 
 // Ambient space/habitat drone state
@@ -55,6 +62,32 @@ let ambienceNodes: {
   noise: AudioBufferSourceNode;
   active: boolean;
 } | null = null;
+
+// Continuous background music track URLs (gapless Vorbis primary + MP3 fallback)
+const MUSIC_TRACK_OGG = '/assets/audio/astro_cadet_space_theme.ogg';
+const MUSIC_TRACK_MP3 = '/assets/audio/astro_cadet_space_theme.mp3';
+
+// Continuous background music engine state (single persistent track across all screens)
+let musicEngine: {
+  masterGain: GainNode;
+  duckGain: GainNode;
+  toneFilter: BiquadFilterNode;
+  source: AudioBufferSourceNode | null;
+  buffer: AudioBuffer | null;
+  isLoading: boolean;
+  isPlaying: boolean;
+  offsetSeconds: number;
+  startedAtCtxTime: number;
+} | null = null;
+
+let fallbackHtmlAudio: HTMLAudioElement | null = null;
+let useFallbackHtmlAudio = false;
+
+let desiredMusicTrack: MusicTrack = 'off';
+let unlockHandlersBound = false;
+let hasUserInteracted = false;
+let isPageHidden = typeof document !== 'undefined' ? document.hidden : false;
+let duckTimeoutId: number | null = null;
 
 export const SOUND_COOLDOWNS_MS: Partial<Record<SoundId, number>> = {
   footstep: 260,
@@ -75,12 +108,22 @@ export const SOUND_COOLDOWNS_MS: Partial<Record<SoundId, number>> = {
   'repair-tool': 650,
 };
 
-export function setAudioConfig(cfg: { muted?: boolean; volume?: number }) {
+export function setAudioConfig(cfg: {
+  muted?: boolean;
+  volume?: number;
+  musicMuted?: boolean;
+  musicVolume?: number;
+}) {
   if (typeof cfg.muted === 'boolean') masterConfig.muted = cfg.muted;
   if (typeof cfg.volume === 'number') {
     masterConfig.volume = Math.max(0, Math.min(1, cfg.volume));
   }
+  if (typeof cfg.musicMuted === 'boolean') masterConfig.musicMuted = cfg.musicMuted;
+  if (typeof cfg.musicVolume === 'number') {
+    masterConfig.musicVolume = Math.max(0, Math.min(1, cfg.musicVolume));
+  }
   updateAmbienceGain();
+  updateMusicGain();
 }
 
 export function getAudioConfig() {
@@ -95,9 +138,9 @@ export function canPlaySound(id: SoundId, nowMs = Date.now()): boolean {
   return true;
 }
 
-function getCtx(): AudioContext | null {
+function getExistingOrNewCtx(allowCreate = true): AudioContext | null {
   if (typeof window === 'undefined') return null;
-  if (!audioCtx) {
+  if (!audioCtx && allowCreate) {
     const Ctor =
       window.AudioContext ||
       (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
@@ -105,10 +148,15 @@ function getCtx(): AudioContext | null {
       audioCtx = new Ctor();
     }
   }
-  if (audioCtx && audioCtx.state === 'suspended') {
-    audioCtx.resume().catch(() => {});
-  }
   return audioCtx;
+}
+
+function getCtx(): AudioContext | null {
+  const ctx = getExistingOrNewCtx(true);
+  if (ctx && ctx.state === 'suspended') {
+    ctx.resume().catch(() => {});
+  }
+  return ctx;
 }
 
 function getNoiseBuffer(ctx: AudioContext): AudioBuffer {
@@ -132,7 +180,9 @@ function getNoiseBuffer(ctx: AudioContext): AudioBuffer {
 function updateAmbienceGain() {
   if (!ambienceNodes || !audioCtx) return;
   const target =
-    ambienceNodes.active && !masterConfig.muted ? 0.032 * masterConfig.volume : 0.0001;
+    ambienceNodes.active && !masterConfig.muted && !isPageHidden
+      ? 0.032 * masterConfig.volume
+      : 0.0001;
   try {
     ambienceNodes.gain.gain.setTargetAtTime(target, audioCtx.currentTime, 0.25);
   } catch {
@@ -145,7 +195,7 @@ export function syncAmbience(active: boolean, muted?: boolean, volume?: number) 
   if (typeof volume === 'number') masterConfig.volume = Math.max(0, Math.min(1, volume));
 
   if (typeof window === 'undefined') return;
-  if (!active || masterConfig.muted || masterConfig.volume <= 0.01) {
+  if (!active || masterConfig.muted || masterConfig.volume <= 0.01 || isPageHidden) {
     if (ambienceNodes) {
       ambienceNodes.active = false;
       updateAmbienceGain();
@@ -200,6 +250,354 @@ export function syncAmbience(active: boolean, muted?: boolean, volume?: number) 
     // Ignore Web Audio init errors
   }
 }
+
+function shouldMusicPlay(): boolean {
+  return (
+    desiredMusicTrack !== 'off' &&
+    !masterConfig.musicMuted &&
+    masterConfig.musicVolume > 0.01 &&
+    !isPageHidden
+  );
+}
+
+function getTargetMusicGain(): number {
+  if (!shouldMusicPlay()) return 0.0001;
+  // Keep music comfortably gentle so mission alerts, voice, and SFX stay clear
+  const modeScale = desiredMusicTrack === 'mission' ? 0.24 : 0.32;
+  return Math.max(0.0001, masterConfig.musicVolume * modeScale);
+}
+
+function updateMusicGain() {
+  if (useFallbackHtmlAudio && fallbackHtmlAudio) {
+    const playing = shouldMusicPlay();
+    fallbackHtmlAudio.volume = playing
+      ? Math.max(0, Math.min(1, masterConfig.musicVolume * (desiredMusicTrack === 'mission' ? 0.24 : 0.32)))
+      : 0;
+    if (playing && hasUserInteracted && fallbackHtmlAudio.paused) {
+      fallbackHtmlAudio.play().catch(() => {});
+    } else if (!playing && !fallbackHtmlAudio.paused) {
+      fallbackHtmlAudio.pause();
+    }
+    return;
+  }
+
+  if (!musicEngine || !audioCtx) return;
+  const now = audioCtx.currentTime;
+  const playing = shouldMusicPlay();
+  const targetMaster = getTargetMusicGain();
+  const targetCutoff = desiredMusicTrack === 'mission' ? 3200 : 7500;
+  try {
+    musicEngine.masterGain.gain.setTargetAtTime(targetMaster, now, playing ? 0.45 : 0.18);
+    musicEngine.toneFilter.frequency.setTargetAtTime(targetCutoff, now, 0.5);
+  } catch {
+    // Ignore gain scheduling errors
+  }
+}
+
+function duckMusic(durationMs = 1350) {
+  if (!shouldMusicPlay()) return;
+
+  if (useFallbackHtmlAudio && fallbackHtmlAudio) {
+    const normalVol = Math.max(
+      0,
+      Math.min(1, masterConfig.musicVolume * (desiredMusicTrack === 'mission' ? 0.24 : 0.32))
+    );
+    fallbackHtmlAudio.volume = normalVol * 0.35;
+    if (duckTimeoutId !== null) window.clearTimeout(duckTimeoutId);
+    duckTimeoutId = window.setTimeout(() => {
+      duckTimeoutId = null;
+      if (fallbackHtmlAudio && shouldMusicPlay()) {
+        fallbackHtmlAudio.volume = getTargetMusicGain();
+      }
+    }, durationMs);
+    return;
+  }
+
+  if (!musicEngine || !audioCtx) return;
+  const now = audioCtx.currentTime;
+  try {
+    musicEngine.duckGain.gain.cancelScheduledValues(now);
+    musicEngine.duckGain.gain.setTargetAtTime(0.32, now, 0.06);
+    if (duckTimeoutId !== null) {
+      window.clearTimeout(duckTimeoutId);
+    }
+    duckTimeoutId = window.setTimeout(() => {
+      duckTimeoutId = null;
+      if (musicEngine && audioCtx) {
+        try {
+          musicEngine.duckGain.gain.setTargetAtTime(1.0, audioCtx.currentTime, 0.45);
+        } catch {
+          // Ignore
+        }
+      }
+    }, durationMs);
+  } catch {
+    // Ignore
+  }
+}
+
+async function fetchAndDecodeMusicBuffer(ctx: AudioContext): Promise<AudioBuffer> {
+  const candidates = [MUSIC_TRACK_OGG, MUSIC_TRACK_MP3];
+  let lastError: unknown = null;
+  for (const url of candidates) {
+    try {
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`HTTP ${res.status} for ${url}`);
+      const arrayBuf = await res.arrayBuffer();
+      const decoded = await ctx.decodeAudioData(arrayBuf);
+      return decoded;
+    } catch (err) {
+      lastError = err;
+    }
+  }
+  throw lastError ?? new Error('Unable to load background music track');
+}
+
+function initFallbackHtmlAudio() {
+  if (typeof window === 'undefined' || fallbackHtmlAudio) return;
+  useFallbackHtmlAudio = true;
+  const audio = new Audio(MUSIC_TRACK_MP3);
+  audio.loop = true;
+  audio.preload = 'auto';
+  audio.volume = shouldMusicPlay() ? getTargetMusicGain() : 0;
+  fallbackHtmlAudio = audio;
+  if (shouldMusicPlay() && hasUserInteracted) {
+    audio.play().catch(() => {});
+  }
+}
+
+function startBufferLoop(ctx: AudioContext) {
+  const engine = musicEngine;
+  if (!engine || !engine.buffer || engine.isPlaying || !shouldMusicPlay()) return;
+
+  const source = ctx.createBufferSource();
+  source.buffer = engine.buffer;
+  source.loop = true;
+  source.loopStart = 0;
+  source.loopEnd = engine.buffer.duration;
+  source.connect(engine.toneFilter);
+
+  const offset =
+    engine.buffer.duration > 0 ? engine.offsetSeconds % engine.buffer.duration : 0;
+
+  // Gentle fade-in from silence when starting/resuming playback
+  engine.masterGain.gain.cancelScheduledValues(ctx.currentTime);
+  engine.masterGain.gain.setValueAtTime(0.0001, ctx.currentTime);
+
+  source.start(0, offset);
+  engine.source = source;
+  engine.isPlaying = true;
+  engine.startedAtCtxTime = ctx.currentTime - offset;
+  updateMusicGain();
+}
+
+function pauseBufferLoop() {
+  if (useFallbackHtmlAudio && fallbackHtmlAudio) {
+    fallbackHtmlAudio.pause();
+    return;
+  }
+  const engine = musicEngine;
+  if (!engine || !audioCtx) return;
+
+  if (engine.isPlaying && engine.source && engine.buffer) {
+    const elapsed = Math.max(0, audioCtx.currentTime - engine.startedAtCtxTime);
+    engine.offsetSeconds = elapsed % engine.buffer.duration;
+    try {
+      engine.source.stop();
+      engine.source.disconnect();
+    } catch {
+      // Ignore stop errors if already ended
+    }
+    engine.source = null;
+    engine.isPlaying = false;
+  }
+  updateMusicGain();
+}
+
+function ensureMusicEngineRunning() {
+  if (typeof window === 'undefined') return;
+  if (!shouldMusicPlay()) {
+    pauseBufferLoop();
+    return;
+  }
+
+  if (useFallbackHtmlAudio) {
+    initFallbackHtmlAudio();
+    updateMusicGain();
+    return;
+  }
+
+  // Respect browser autoplay restrictions: wait for first user interaction
+  if (!hasUserInteracted && (!audioCtx || audioCtx.state === 'suspended')) {
+    return;
+  }
+
+  const ctx = getExistingOrNewCtx(true);
+  if (!ctx) {
+    initFallbackHtmlAudio();
+    return;
+  }
+
+  if (ctx.state === 'suspended') {
+    ctx
+      .resume()
+      .then(() => {
+        if (ctx.state === 'running' && shouldMusicPlay()) {
+          startOrLoadMusicEngine(ctx);
+        }
+      })
+      .catch(() => {});
+    return;
+  }
+
+  startOrLoadMusicEngine(ctx);
+}
+
+function startOrLoadMusicEngine(ctx: AudioContext) {
+  if (!musicEngine) {
+    const masterGain = ctx.createGain();
+    masterGain.gain.setValueAtTime(0.0001, ctx.currentTime);
+
+    const duckGain = ctx.createGain();
+    duckGain.gain.setValueAtTime(1.0, ctx.currentTime);
+
+    const toneFilter = ctx.createBiquadFilter();
+    toneFilter.type = 'lowpass';
+    toneFilter.frequency.setValueAtTime(desiredMusicTrack === 'mission' ? 3200 : 7500, ctx.currentTime);
+
+    toneFilter.connect(duckGain);
+    duckGain.connect(masterGain);
+    masterGain.connect(ctx.destination);
+
+    musicEngine = {
+      masterGain,
+      duckGain,
+      toneFilter,
+      source: null,
+      buffer: null,
+      isLoading: false,
+      isPlaying: false,
+      offsetSeconds: 0,
+      startedAtCtxTime: ctx.currentTime,
+    };
+  }
+
+  if (musicEngine.buffer) {
+    if (!musicEngine.isPlaying) {
+      startBufferLoop(ctx);
+    } else {
+      updateMusicGain();
+    }
+    return;
+  }
+
+  if (!musicEngine.isLoading) {
+    musicEngine.isLoading = true;
+    fetchAndDecodeMusicBuffer(ctx)
+      .then((decoded) => {
+        if (!musicEngine) return;
+        musicEngine.buffer = decoded;
+        musicEngine.isLoading = false;
+        if (shouldMusicPlay() && ctx.state === 'running') {
+          startBufferLoop(ctx);
+        }
+      })
+      .catch(() => {
+        if (musicEngine) musicEngine.isLoading = false;
+        initFallbackHtmlAudio();
+      });
+  }
+}
+
+export function initAudioUnlockHandlers() {
+  if (typeof window === 'undefined' || unlockHandlersBound) return;
+  unlockHandlersBound = true;
+
+  const handleUserGesture = () => {
+    hasUserInteracted = true;
+    if (useFallbackHtmlAudio) {
+      updateMusicGain();
+      return;
+    }
+    const ctx = getExistingOrNewCtx(true);
+    if (!ctx) return;
+    if (ctx.state === 'suspended') {
+      ctx
+        .resume()
+        .then(() => {
+          if (shouldMusicPlay()) {
+            startOrLoadMusicEngine(ctx);
+          }
+        })
+        .catch(() => {});
+    } else if (shouldMusicPlay()) {
+      startOrLoadMusicEngine(ctx);
+    }
+  };
+
+  window.addEventListener('pointerdown', handleUserGesture, { passive: true });
+  window.addEventListener('keydown', handleUserGesture, { passive: true });
+
+  const handleVisibilityChange = () => {
+    isPageHidden = document.hidden;
+    if (isPageHidden) {
+      pauseBufferLoop();
+      updateAmbienceGain();
+      if (audioCtx && audioCtx.state === 'running') {
+        audioCtx.suspend().catch(() => {});
+      }
+    } else {
+      if (audioCtx && audioCtx.state === 'suspended') {
+        audioCtx
+          .resume()
+          .then(() => {
+            if (shouldMusicPlay() && audioCtx) {
+              startOrLoadMusicEngine(audioCtx);
+            }
+            updateAmbienceGain();
+          })
+          .catch(() => {});
+      } else if (shouldMusicPlay()) {
+        ensureMusicEngineRunning();
+        updateAmbienceGain();
+      }
+    }
+  };
+
+  document.addEventListener('visibilitychange', handleVisibilityChange);
+  window.addEventListener('pagehide', () => {
+    pauseBufferLoop();
+  });
+}
+
+export function syncMusic(
+  track: MusicTrack,
+  opts?: { musicMuted?: boolean; musicVolume?: number }
+) {
+  if (typeof opts?.musicMuted === 'boolean') masterConfig.musicMuted = opts.musicMuted;
+  if (typeof opts?.musicVolume === 'number') {
+    masterConfig.musicVolume = Math.max(0, Math.min(1, opts.musicVolume));
+  }
+
+  desiredMusicTrack = track;
+
+  if (typeof window === 'undefined') return;
+  initAudioUnlockHandlers();
+
+  if (!shouldMusicPlay()) {
+    pauseBufferLoop();
+    return;
+  }
+
+  if (musicEngine && musicEngine.isPlaying) {
+    // Track is already looping continuously — smoothly update gain/tone without restarting
+    updateMusicGain();
+    return;
+  }
+
+  ensureMusicEngineRunning();
+}
+
 
 function playOsc(
   ctx: AudioContext,
@@ -277,6 +675,17 @@ export function playSound(
 
   const ctx = getCtx();
   if (!ctx) return;
+
+  if (
+    id === 'alert' ||
+    id === 'alarm-critical' ||
+    id === 'emergency-resolved' ||
+    id.startsWith('warn-') ||
+    id.startsWith('rocket-') ||
+    id === 'landing-impact'
+  ) {
+    duckMusic(id.startsWith('rocket-') ? 1800 : 1200);
+  }
 
   try {
     switch (id) {

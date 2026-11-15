@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { LogOut, Play, RotateCcw, Settings, Volume2, VolumeX, X } from 'lucide-react';
+import { LogOut, Music, Play, RotateCcw, Settings, Volume2, VolumeX, X } from 'lucide-react';
 import { useGameStore } from '../../store/gameStore';
 
 export default function SettingsPauseModal() {
@@ -7,8 +7,10 @@ export default function SettingsPauseModal() {
   const missionStatus = useGameStore((s) => s.missionStatus);
   const savedProgress = useGameStore((s) => s.savedProgress);
   const difficulty = useGameStore((s) => s.difficulty);
-  const toggleMute = useGameStore((s) => s.toggleMute);
+  const toggleSfxMute = useGameStore((s) => s.toggleSfxMute);
   const setAudioVolume = useGameStore((s) => s.setAudioVolume);
+  const toggleMusicMute = useGameStore((s) => s.toggleMusicMute);
+  const setMusicVolume = useGameStore((s) => s.setMusicVolume);
   const toggleReducedMotion = useGameStore((s) => s.toggleReducedMotion);
   const toggleLowGraphics = useGameStore((s) => s.toggleLowGraphics);
   const setDifficulty = useGameStore((s) => s.setDifficulty);
@@ -128,7 +130,7 @@ export default function SettingsPauseModal() {
                 <span className="text-sm font-semibold text-[#F4F7FB]">Sound Effects</span>
               </div>
               <button
-                onClick={toggleMute}
+                onClick={toggleSfxMute}
                 className={`px-3 py-1.5 rounded-lg text-xs font-bold cursor-pointer ${
                   !savedProgress.muted ? 'bg-[#37D67A] text-[#07111F]' : 'bg-[#152A3E] text-[#AAB8C8]'
                 }`}
@@ -155,6 +157,55 @@ export default function SettingsPauseModal() {
               />
               <span className="text-xs font-bold text-[#37D6F4] tabular-nums w-9 text-right">
                 {Math.round((savedProgress.muted ? 0 : savedProgress.volume) * 100)}%
+              </span>
+            </div>
+          </div>
+
+          <div className="rounded-xl bg-[#07111F] border border-white/10 px-4 py-3 space-y-2.5">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <Music
+                  className={`w-4 h-4 ${
+                    savedProgress.musicMuted ? 'text-[#AAB8C8]' : 'text-[#37D6F4]'
+                  }`}
+                />
+                <span className="text-sm font-semibold text-[#F4F7FB]">Background Music</span>
+              </div>
+              <button
+                onClick={toggleMusicMute}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold cursor-pointer ${
+                  !savedProgress.musicMuted
+                    ? 'bg-[#37D67A] text-[#07111F]'
+                    : 'bg-[#152A3E] text-[#AAB8C8]'
+                }`}
+              >
+                {savedProgress.musicMuted ? 'Muted' : 'Enabled'}
+              </button>
+            </div>
+            <div className="flex items-center gap-3">
+              <label
+                htmlFor="music-volume-slider"
+                className="text-xs font-semibold text-[#AAB8C8] shrink-0"
+              >
+                Music Volume
+              </label>
+              <input
+                id="music-volume-slider"
+                type="range"
+                min={0}
+                max={100}
+                step={5}
+                value={Math.round(
+                  (savedProgress.musicMuted ? 0 : (savedProgress.musicVolume ?? 0.35)) * 100
+                )}
+                onChange={(e) => setMusicVolume(Number(e.target.value) / 100)}
+                className="flex-1 accent-[#37D6F4] cursor-pointer"
+              />
+              <span className="text-xs font-bold text-[#37D6F4] tabular-nums w-9 text-right">
+                {Math.round(
+                  (savedProgress.musicMuted ? 0 : (savedProgress.musicVolume ?? 0.35)) * 100
+                )}
+                %
               </span>
             </div>
           </div>
