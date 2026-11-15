@@ -129,3 +129,133 @@ body {
   );
 }
 
+/* ==========================================================================
+   HOMEPAGE-SCOPED THEME: NASA Planetary Exploration & Mission Control
+   Strictly scoped under .homepage-theme so other screens remain unaffected.
+   ========================================================================== */
+.homepage-theme {
+  background-color: #101923;
+  color: #F2F3F4;
+}
+
+.homepage-theme .mc-topbar {
+  background: linear-gradient(180deg, rgba(16, 25, 35, 0.88) 0%, rgba(23, 25, 28, 0.82) 100%);
+  border-bottom: 1px solid rgba(195, 203, 210, 0.16);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.42);
+}
+
+.homepage-theme .mc-panel {
+  background: linear-gradient(155deg, rgba(37, 43, 51, 0.78) 0%, rgba(23, 25, 28, 0.86) 55%, rgba(16, 25, 35, 0.9) 100%);
+  border: 1px solid rgba(195, 203, 210, 0.18);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow:
+    inset 0 1px 0 rgba(242, 243, 244, 0.1),
+    0 12px 30px rgba(0, 0, 0, 0.48);
+}
+
+.homepage-theme .mc-subpanel {
+  background: linear-gradient(150deg, rgba(23, 25, 28, 0.82) 0%, rgba(16, 25, 35, 0.88) 100%);
+  border: 1px solid rgba(195, 203, 210, 0.14);
+  box-shadow: inset 0 1px 0 rgba(242, 243, 244, 0.06);
+}
+
+.homepage-theme .mc-card-moon-active {
+  background: linear-gradient(160deg, rgba(37, 43, 51, 0.86) 0%, rgba(16, 25, 35, 0.92) 100%);
+  border: 1px solid rgba(83, 212, 230, 0.72);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow:
+    inset 0 1px 0 rgba(169, 220, 235, 0.2),
+    0 0 0 1px rgba(83, 212, 230, 0.2),
+    0 14px 32px rgba(0, 0, 0, 0.52);
+}
+
+.homepage-theme .mc-card-mars-active {
+  background: linear-gradient(160deg, rgba(73, 49, 38, 0.62) 0%, rgba(23, 25, 28, 0.9) 55%, rgba(16, 25, 35, 0.93) 100%);
+  border: 1px solid rgba(228, 119, 62, 0.78);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 181, 71, 0.18),
+    0 0 0 1px rgba(185, 110, 70, 0.25),
+    0 14px 32px rgba(0, 0, 0, 0.52);
+}
+
+.homepage-theme .mc-card-inactive {
+  background: linear-gradient(160deg, rgba(37, 43, 51, 0.74) 0%, rgba(23, 25, 28, 0.86) 100%);
+  border: 1px solid rgba(195, 203, 210, 0.16);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow:
+    inset 0 1px 0 rgba(242, 243, 244, 0.08),
+    0 10px 26px rgba(0, 0, 0, 0.44);
+}
+
+.homepage-theme .mc-card-inactive:hover {
+  border-color: rgba(169, 220, 235, 0.36);
+}
+
+.homepage-theme .mc-btn-metallic {
+  background: linear-gradient(180deg, rgba(46, 54, 64, 0.88) 0%, rgba(30, 35, 42, 0.92) 100%);
+  border: 1px solid rgba(195, 203, 210, 0.2);
+  color: #F2F3F4;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 4px 12px rgba(0, 0, 0, 0.32);
+  transition: border-color 0.2s ease, background 0.2s ease, filter 0.2s ease;
+}
+
+.homepage-theme .mc-btn-metallic:hover {
+  border-color: rgba(83, 212, 230, 0.52);
+  filter: brightness(1.08);
+}
+
+.homepage-theme .mc-btn-cyan {
+  background: linear-gradient(180deg, rgba(37, 43, 51, 0.92) 0%, rgba(20, 29, 38, 0.95) 100%);
+  border: 1.5px solid rgba(83, 212, 230, 0.68);
+  color: #F2F3F4;
+  box-shadow: inset 0 1px 0 rgba(169, 220, 235, 0.16), 0 6px 18px rgba(0, 0, 0, 0.38);
+  transition: border-color 0.2s ease, filter 0.2s ease, box-shadow 0.2s ease;
+}
+
+.homepage-theme .mc-btn-cyan:hover {
+  border-color: #A9DCEB;
+  filter: brightness(1.08);
+  box-shadow: inset 0 1px 0 rgba(169, 220, 235, 0.24), 0 6px 20px rgba(83, 212, 230, 0.18);
+}
+
+.homepage-theme .mc-btn-orange {
+  background: linear-gradient(180deg, #E4773E 0%, #B96E46 100%);
+  border: 1px solid rgba(255, 181, 71, 0.45);
+  color: #F2F3F4;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.22), 0 6px 18px rgba(0, 0, 0, 0.42);
+  transition: filter 0.2s ease, border-color 0.2s ease;
+}
+
+.homepage-theme .mc-btn-orange:hover {
+  filter: brightness(1.08);
+  border-color: rgba(255, 181, 71, 0.72);
+}
+
+.homepage-theme .mc-capcom-panel {
+  background: linear-gradient(155deg, rgba(37, 43, 51, 0.78) 0%, rgba(23, 25, 28, 0.86) 55%, rgba(16, 25, 35, 0.9) 100%);
+  border: 1px solid rgba(195, 203, 210, 0.18);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow:
+    inset 0 1px 0 rgba(242, 243, 244, 0.1),
+    0 12px 30px rgba(0, 0, 0, 0.48);
+}
+
+.homepage-theme .mc-capcom-title {
+  color: #F2F3F4;
+}
+
+.homepage-theme .mc-capcom-bubble {
+  background: linear-gradient(160deg, rgba(236, 241, 246, 0.96) 0%, rgba(210, 221, 232, 0.94) 100%);
+  color: #17191C;
+  border: 1px solid rgba(169, 220, 235, 0.45);
+}
+
+

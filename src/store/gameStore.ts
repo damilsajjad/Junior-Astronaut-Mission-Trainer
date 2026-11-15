@@ -31,6 +31,7 @@ import {
   countFoodItems,
   determineMissionOutcome,
   evaluateObjectives,
+  isMachineHealthy,
   previewDailyRates,
   stepContinuousSimulation,
 } from '../engine/simulation';

@@ -20,16 +20,16 @@ export default function CapcomGuidePanel({ compact: _compact = false }: { compac
   const capcomMessage = useGameStore((s) => s.capcomMessage);
 
   return (
-    <div className="rounded-2xl bg-[#0D1B2A]/95 border border-white/15 p-3.5 flex flex-col gap-2.5 shadow-xl">
+    <div className="mc-capcom-panel rounded-2xl bg-[#0D1B2A]/95 border border-white/15 p-3.5 flex flex-col gap-2.5 shadow-xl">
       <div className="flex items-center justify-between gap-2">
-        <span className="text-xs font-extrabold tracking-wider uppercase text-[#F4F7FB]">
+        <span className="mc-capcom-title text-xs font-extrabold tracking-wider uppercase text-[#F4F7FB]">
           Mission Guide
         </span>
       </div>
 
       <div className="flex items-start gap-2.5">
         <RobotAvatarSvg className="w-12 h-12 shrink-0" />
-        <div className="rounded-xl bg-[#DCE9F7] text-[#0D1B2A] px-3 py-2 text-xs font-semibold leading-snug shadow-sm">
+        <div className="mc-capcom-bubble rounded-xl bg-[#DCE9F7] text-[#0D1B2A] px-3 py-2 text-xs font-semibold leading-snug shadow-sm">
           {capcomMessage}
         </div>
       </div>
