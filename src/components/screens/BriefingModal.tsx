@@ -28,19 +28,19 @@ export default function BriefingModal() {
         <div className="p-6 space-y-4">
           <p className="text-sm text-[#F4F7FB] leading-relaxed">
             Welcome inside your pressurized habitat module! Walk around with{' '}
-            <span className="font-bold text-[#37D6F4]">WASD / Arrow Keys</span> (or the on-screen
-            joystick), press <span className="font-bold text-[#37D6F4]">E</span> to inspect stations
-            or pick up supplies, and keep your crew safe for 5 Sols.
+            <span className="font-bold text-[#37D6F4]">WASD / Arrow Keys</span> (or click the floor),
+            press <span className="font-bold text-[#37D6F4]">E</span> near machines to inspect or pick
+            up crates, complete your <strong>Research Objective</strong>, and keep all 4 crew safe for 10 Sols.
           </p>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="rounded-xl bg-[#07111F] border border-white/10 p-3.5">
               <div className="flex items-center gap-2 text-xs font-bold text-[#37D67A] mb-1">
                 <ShieldCheck className="w-4 h-4" />
-                <span>4 Engineering Pillars</span>
+                <span>3 Mission Objectives</span>
               </div>
               <p className="text-xs text-[#AAB8C8]">
-                Balance Life Support (O₂, H₂O, CO₂), Radiation Shielding, Solar Power, and Food!
+                1) Restore & maintain all 9 life-support machines, 2) Reach 100% Research, 3) Survive to End of Sol 10!
               </p>
             </div>
             <div className="rounded-xl bg-[#07111F] border border-white/10 p-3.5">

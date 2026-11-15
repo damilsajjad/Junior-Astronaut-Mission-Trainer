@@ -1,59 +1,92 @@
 import { useState } from 'react';
-import { BookOpen, Eye, HelpCircle, Play, X } from 'lucide-react';
-import { MANUAL_PAGES, getManualPageForContext } from '../../data/manual';
+import { BookOpen, Eye, HelpCircle, Play, Wrench, X } from 'lucide-react';
+import { MANUAL_PAGES, ManualDiagramType, getManualPageForContext } from '../../data/manual';
 import { useGameStore } from '../../store/gameStore';
 
-function ManualDiagramSvg({ type }: { type: string }) {
-  if (type === 'electrolysis' || type === 'power-circuit') {
+function ManualDiagramSvg({ type }: { type: ManualDiagramType }) {
+  if (type === 'electrolysis' || type === 'power-circuit' || type === 'battery-bank' || type === 'temperature-control') {
+    const targetLabel =
+      type === 'electrolysis'
+        ? 'O₂ UNIT'
+        : type === 'battery-bank'
+          ? 'BATTERY'
+          : type === 'temperature-control'
+            ? 'HEATER'
+            : 'SOLAR HUB';
     return (
-      <svg viewBox="0 0 360 130" className="w-full h-32 rounded-xl bg-[#07111F] border border-white/10">
-        <rect x="20" y="20" width="90" height="90" rx="10" fill="#152A3E" stroke="#37D6F4" strokeWidth="1.5" />
-        <text x="65" y="42" textAnchor="middle" fill="#F4F7FB" fontSize="10" fontWeight="bold">SOURCE</text>
-        <circle cx="95" cy="60" r="6" fill="#FF5B68" />
-        <circle cx="95" cy="80" r="6" fill="#FFB84D" />
-        <circle cx="95" cy="100" r="6" fill="#94A3B8" />
-        <line x1="101" y1="60" x2="254" y2="60" stroke="#FF5B68" strokeWidth="3" />
-        <line x1="101" y1="80" x2="254" y2="80" stroke="#FFB84D" strokeWidth="3" />
-        <line x1="101" y1="100" x2="254" y2="100" stroke="#94A3B8" strokeWidth="3" />
-        <text x="178" y="54" textAnchor="middle" fill="#FF5B68" fontSize="9">RED → PWR+</text>
-        <text x="178" y="74" textAnchor="middle" fill="#FFB84D" fontSize="9">YELLOW → CTRL</text>
-        <text x="178" y="94" textAnchor="middle" fill="#AAB8C8" fontSize="9">BLACK → GND</text>
-        <rect x="250" y="20" width="90" height="90" rx="10" fill="#152A3E" stroke="#37D67A" strokeWidth="1.5" />
-        <text x="295" y="42" textAnchor="middle" fill="#37D67A" fontSize="10" fontWeight="bold">O₂ / PWR</text>
-        <circle cx="260" cy="60" r="6" fill="#FF5B68" />
-        <circle cx="260" cy="80" r="6" fill="#FFB84D" />
-        <circle cx="260" cy="100" r="6" fill="#94A3B8" />
+      <svg viewBox="0 0 360 120" className="w-full h-28 rounded-xl bg-[#07111F] border border-white/10">
+        <rect x="20" y="18" width="90" height="84" rx="10" fill="#152A3E" stroke="#37D6F4" strokeWidth="1.5" />
+        <text x="65" y="38" textAnchor="middle" fill="#F4F7FB" fontSize="10" fontWeight="bold">SOURCE</text>
+        <circle cx="95" cy="54" r="6" fill="#FF5B68" />
+        <circle cx="95" cy="72" r="6" fill="#FFB84D" />
+        <circle cx="95" cy="90" r="6" fill="#94A3B8" />
+        <line x1="101" y1="54" x2="254" y2="54" stroke="#FF5B68" strokeWidth="3" />
+        <line x1="101" y1="72" x2="254" y2="72" stroke="#FFB84D" strokeWidth="3" />
+        <line x1="101" y1="90" x2="254" y2="90" stroke="#94A3B8" strokeWidth="3" />
+        <text x="178" y="48" textAnchor="middle" fill="#FF5B68" fontSize="9">RED → PWR+</text>
+        <text x="178" y="66" textAnchor="middle" fill="#FFB84D" fontSize="9">YELLOW → CTRL</text>
+        <text x="178" y="84" textAnchor="middle" fill="#AAB8C8" fontSize="9">BLACK → GND</text>
+        <rect x="250" y="18" width="90" height="84" rx="10" fill="#152A3E" stroke="#37D67A" strokeWidth="1.5" />
+        <text x="295" y="38" textAnchor="middle" fill="#37D67A" fontSize="10" fontWeight="bold">{targetLabel}</text>
+        <circle cx="260" cy="54" r="6" fill="#FF5B68" />
+        <circle cx="260" cy="72" r="6" fill="#FFB84D" />
+        <circle cx="260" cy="90" r="6" fill="#94A3B8" />
       </svg>
     );
   }
   if (type === 'co2-scrubber') {
     return (
-      <svg viewBox="0 0 360 130" className="w-full h-32 rounded-xl bg-[#07111F] border border-white/10">
-        <rect x="24" y="40" width="66" height="50" rx="8" fill="#152A3E" stroke="#37D6F4" />
-        <text x="57" y="69" textAnchor="middle" fill="#F4F7FB" fontSize="9" fontWeight="bold">1. GASKET</text>
-        <rect x="106" y="40" width="66" height="50" rx="8" fill="#152A3E" stroke="#FFB84D" />
-        <text x="139" y="69" textAnchor="middle" fill="#F4F7FB" fontSize="9" fontWeight="bold">2. ADAPTER</text>
-        <rect x="188" y="40" width="66" height="50" rx="8" fill="#152A3E" stroke="#37D67A" />
-        <text x="221" y="69" textAnchor="middle" fill="#F4F7FB" fontSize="9" fontWeight="bold">3. LiOH</text>
-        <rect x="270" y="40" width="66" height="50" rx="8" fill="#152A3E" stroke="#37D6F4" />
-        <text x="303" y="69" textAnchor="middle" fill="#F4F7FB" fontSize="9" fontWeight="bold">4. HEPA</text>
+      <svg viewBox="0 0 360 120" className="w-full h-28 rounded-xl bg-[#07111F] border border-white/10">
+        <rect x="24" y="38" width="66" height="50" rx="8" fill="#152A3E" stroke="#37D6F4" />
+        <text x="57" y="67" textAnchor="middle" fill="#F4F7FB" fontSize="9" fontWeight="bold">1. GASKET</text>
+        <rect x="106" y="38" width="66" height="50" rx="8" fill="#152A3E" stroke="#FFB84D" />
+        <text x="139" y="67" textAnchor="middle" fill="#F4F7FB" fontSize="9" fontWeight="bold">2. ADAPTER</text>
+        <rect x="188" y="38" width="66" height="50" rx="8" fill="#152A3E" stroke="#37D67A" />
+        <text x="221" y="67" textAnchor="middle" fill="#F4F7FB" fontSize="9" fontWeight="bold">3. LiOH</text>
+        <rect x="270" y="38" width="66" height="50" rx="8" fill="#152A3E" stroke="#37D6F4" />
+        <text x="303" y="67" textAnchor="middle" fill="#F4F7FB" fontSize="9" fontWeight="bold">4. HEPA</text>
         <text x="180" y="22" textAnchor="middle" fill="#37D6F4" fontSize="10" fontWeight="bold">
           CABIN CO₂ AIRFLOW → CLEANED AIR OUT (NO O₂ PRODUCED)
         </text>
       </svg>
     );
   }
+  if (type === 'water-recycler' || type === 'greenhouse') {
+    return (
+      <svg viewBox="0 0 360 120" className="w-full h-28 rounded-xl bg-[#07111F] border border-white/10">
+        <rect x="26" y="34" width="84" height="54" rx="10" fill="#152A3E" stroke="#FFB84D" />
+        <text x="68" y="57" textAnchor="middle" fill="#FFB84D" fontSize="9" fontWeight="bold">4 PWR</text>
+        <text x="68" y="72" textAnchor="middle" fill="#AAB8C8" fontSize="8">
+          {type === 'greenhouse' ? '+ 2 WATER' : 'PUMP POWER'}
+        </text>
+        <line x1="110" y1="61" x2="148" y2="61" stroke="#37D6F4" strokeWidth="3" />
+        <rect x="148" y="28" width="90" height="66" rx="12" fill="#152A3E" stroke="#37D67A" />
+        <text x="193" y="57" textAnchor="middle" fill="#F4F7FB" fontSize="9" fontWeight="bold">
+          {type === 'greenhouse' ? 'HYDROPONICS' : 'DISTILLER'}
+        </text>
+        <text x="193" y="73" textAnchor="middle" fill="#37D67A" fontSize="8">
+          {type === 'greenhouse' ? 'GROW LIGHTS' : 'FILTER LOOP'}
+        </text>
+        <line x1="238" y1="61" x2="270" y2="61" stroke="#37D67A" strokeWidth="3" />
+        <rect x="270" y="34" width="68" height="54" rx="10" fill="#152A3E" stroke="#37D6F4" />
+        <text x="304" y="58" textAnchor="middle" fill="#37D67A" fontSize="9" fontWeight="bold">
+          {type === 'greenhouse' ? '+6 FOOD' : '+7 WATER'}
+        </text>
+        <text x="304" y="72" textAnchor="middle" fill="#AAB8C8" fontSize="8">PER SOL</text>
+      </svg>
+    );
+  }
   return (
-    <svg viewBox="0 0 360 130" className="w-full h-32 rounded-xl bg-[#07111F] border border-white/10">
-      <rect x="30" y="25" width="300" height="80" rx="12" fill="#152A3E" stroke="#37D6F4" strokeWidth="1.5" />
-      <rect x="55" y="40" width="60" height="50" rx="6" fill="#37D6F4" fillOpacity="0.25" stroke="#37D6F4" />
-      <rect x="125" y="40" width="60" height="50" rx="6" fill="#37D6F4" fillOpacity="0.35" stroke="#37D6F4" />
-      <rect x="195" y="40" width="60" height="50" rx="6" fill="#FFB84D" fillOpacity="0.25" stroke="#FFB84D" />
-      <text x="180" y="20" textAnchor="middle" fill="#FFB84D" fontSize="10" fontWeight="bold">
+    <svg viewBox="0 0 360 120" className="w-full h-28 rounded-xl bg-[#07111F] border border-white/10">
+      <rect x="30" y="24" width="300" height="76" rx="12" fill="#152A3E" stroke="#37D6F4" strokeWidth="1.5" />
+      <rect x="55" y="38" width="60" height="48" rx="6" fill="#37D6F4" fillOpacity="0.25" stroke="#37D6F4" />
+      <rect x="125" y="38" width="60" height="48" rx="6" fill="#37D6F4" fillOpacity="0.35" stroke="#37D6F4" />
+      <rect x="195" y="38" width="60" height="48" rx="6" fill="#FFB84D" fillOpacity="0.25" stroke="#FFB84D" />
+      <text x="180" y="18" textAnchor="middle" fill="#FFB84D" fontSize="10" fontWeight="bold">
         SHIELDING / SEALING SCHEMATIC
       </text>
-      <text x="155" y="70" textAnchor="middle" fill="#F4F7FB" fontSize="10" fontWeight="bold">
-        WATER BLOCKS & CREW SHELTER
+      <text x="155" y="66" textAnchor="middle" fill="#F4F7FB" fontSize="10" fontWeight="bold">
+        {type === 'hull-patch' ? 'ALIGN PATCH OVER BREACH RING' : 'WATER BLOCKS & CREW SHELTER'}
       </text>
     </svg>
   );
@@ -74,15 +107,15 @@ export default function RepairManualModal() {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4">
-      <div className="w-full max-w-4xl max-h-[90vh] flex flex-col rounded-2xl bg-[#0D1B2A] border border-[#37D6F4]/40 shadow-2xl overflow-hidden">
+      <div className="w-full max-w-5xl max-h-[90vh] flex flex-col rounded-2xl bg-[#0D1B2A] border border-[#37D6F4]/40 shadow-2xl overflow-hidden">
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 bg-[#152A3E] border-b border-white/10">
           <div className="flex items-center gap-3">
             <BookOpen className="w-5 h-5 text-[#37D6F4]" />
             <div>
-              <h2 className="text-lg font-bold text-[#F4F7FB]">Digital Repair Manual</h2>
+              <h2 className="text-lg font-bold text-[#F4F7FB]">Operational Repair Manual (All 9 Systems)</h2>
               <p className="text-xs text-[#AAB8C8]">
-                Turn progression paused · Inspect diagrams and steps before repairing
+                Simulation paused while reading · Study diagrams, inputs/outputs, and steps before repairing
               </p>
             </div>
           </div>
@@ -97,9 +130,9 @@ export default function RepairManualModal() {
 
         <div className="flex-1 overflow-y-auto grid grid-cols-1 md:grid-cols-3 gap-5 p-6">
           {/* Left Page Selector */}
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             <p className="text-xs font-bold uppercase tracking-wider text-[#AAB8C8] mb-2">
-              System Chapters
+              9 Habitat Systems
             </p>
             {MANUAL_PAGES.map((p) => (
               <button
@@ -109,7 +142,7 @@ export default function RepairManualModal() {
                   setShowHint(false);
                   setShowSolution(false);
                 }}
-                className={`w-full text-left px-3.5 py-2.5 rounded-xl border text-sm font-semibold transition-colors cursor-pointer ${
+                className={`w-full text-left px-3 py-2 rounded-xl border text-xs font-semibold transition-colors cursor-pointer ${
                   page.id === p.id
                     ? 'bg-[#152A3E] border-[#37D6F4] text-[#37D6F4]'
                     : 'bg-[#07111F] border-white/10 text-[#F4F7FB] hover:border-white/30'
@@ -121,30 +154,53 @@ export default function RepairManualModal() {
           </div>
 
           {/* Right Content */}
-          <div className="md:col-span-2 space-y-4">
+          <div className="md:col-span-2 space-y-3.5">
             <div>
               <h3 className="text-xl font-bold text-[#F4F7FB]">{page.title}</h3>
               <p className="text-sm text-[#37D6F4] mt-0.5">{page.subtitle}</p>
             </div>
 
-            <div className="rounded-xl bg-[#152A3E] border border-white/10 p-4 text-sm text-[#F4F7FB] leading-relaxed">
+            <div className="rounded-xl bg-[#152A3E] border border-white/10 p-3.5 text-sm text-[#F4F7FB] leading-relaxed">
               {page.kidSummary}
             </div>
 
             <ManualDiagramSvg type={page.diagramType} />
 
-            <div className="rounded-xl bg-[#07111F] border border-white/10 p-4">
+            {/* Operational Specs Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs">
+              <div className="rounded-xl bg-[#07111F] border border-white/10 p-3">
+                <p className="font-bold text-[#37D6F4] uppercase text-[10px] mb-1">ON / OFF Control</p>
+                <p className="text-[#F4F7FB] leading-snug">{page.onOffRule}</p>
+              </div>
+              <div className="rounded-xl bg-[#07111F] border border-white/10 p-3">
+                <p className="font-bold text-[#37D67A] uppercase text-[10px] mb-1">Inputs & Outputs</p>
+                <p className="text-[#F4F7FB] leading-snug">{page.inputsOutputs}</p>
+              </div>
+              <div className="rounded-xl bg-[#07111F] border border-white/10 p-3">
+                <p className="font-bold text-[#FFB84D] uppercase text-[10px] mb-1 flex items-center gap-1">
+                  <Wrench className="w-3 h-3" /> Maintenance & Required Parts
+                </p>
+                <p className="text-[#F4F7FB] leading-snug">{page.maintenanceGuide}</p>
+                <p className="text-[#AAB8C8] mt-1">Parts: {page.requiredComponents}</p>
+              </div>
+              <div className="rounded-xl bg-[#07111F] border border-[#FF7A3D]/30 p-3">
+                <p className="font-bold text-[#FF7A3D] uppercase text-[10px] mb-1">Why This System Matters</p>
+                <p className="text-[#F4F7FB] leading-snug">{page.whyItMatters}</p>
+              </div>
+            </div>
+
+            <div className="rounded-xl bg-[#07111F] border border-white/10 p-3.5">
               <p className="text-xs font-bold uppercase tracking-wider text-[#FFB84D] mb-2">
-                Repair Steps
+                Numbered Repair Steps
               </p>
-              <ol className="space-y-2 text-sm text-[#F4F7FB] list-decimal list-inside">
+              <ol className="space-y-1.5 text-xs sm:text-sm text-[#F4F7FB] list-decimal list-inside">
                 {page.steps.map((step, i) => (
                   <li key={i}>{step}</li>
                 ))}
               </ol>
             </div>
 
-            <div className="rounded-xl bg-[#07111F] border border-white/10 p-3.5 text-xs text-[#AAB8C8]">
+            <div className="rounded-xl bg-[#07111F] border border-white/10 p-3 text-xs text-[#AAB8C8]">
               <span className="font-bold text-[#37D6F4]">Space Word · {page.glossaryTerm.word}: </span>
               {page.glossaryTerm.meaning}
             </div>

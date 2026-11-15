@@ -61,3 +61,71 @@ body {
   animation-iteration-count: 1 !important;
   transition-duration: 0.01ms !important;
 }
+
+/* Polished Aerospace Mission Control CSS */
+.hud-panel {
+  background: linear-gradient(160deg, rgba(21, 42, 62, 0.94) 0%, rgba(11, 23, 38, 0.96) 55%, rgba(7, 17, 31, 0.98) 100%);
+  border: 1px solid rgba(55, 214, 244, 0.28);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 12px 32px rgba(0, 0, 0, 0.55),
+    0 0 24px rgba(55, 214, 244, 0.08);
+}
+
+.hud-panel-amber {
+  background: linear-gradient(160deg, rgba(44, 27, 22, 0.95) 0%, rgba(16, 22, 36, 0.97) 100%);
+  border: 1.5px solid rgba(255, 122, 61, 0.72);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 184, 77, 0.22),
+    0 12px 32px rgba(255, 122, 61, 0.22);
+}
+
+.hud-subcard {
+  background: linear-gradient(145deg, rgba(25, 50, 74, 0.85) 0%, rgba(13, 27, 42, 0.92) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.11);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 4px 12px rgba(0, 0, 0, 0.25);
+  transition: border-color 0.2s ease, transform 0.2s ease;
+}
+
+.hud-subcard:hover {
+  border-color: rgba(55, 214, 244, 0.38);
+}
+
+.sci-btn {
+  position: relative;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 4px 14px rgba(0, 0, 0, 0.35);
+  transition: transform 0.14s ease, box-shadow 0.18s ease, filter 0.18s ease;
+}
+
+.sci-btn:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.08);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.28), 0 6px 18px rgba(55, 214, 244, 0.22);
+}
+
+.sci-btn:active {
+  transform: translateY(0) scale(0.97);
+}
+
+@keyframes urgentGlow {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(255, 91, 104, 0.55), 0 4px 14px rgba(255, 91, 104, 0.35);
+  }
+  50% {
+    box-shadow: 0 0 0 6px rgba(255, 91, 104, 0), 0 4px 20px rgba(255, 91, 104, 0.6);
+  }
+}
+
+.sci-btn-urgent {
+  animation: urgentGlow 1.6s ease-in-out infinite;
+}
+
+.progress-sheen {
+  background-image: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.18) 0%,
+    rgba(255, 255, 255, 0) 45%,
+    rgba(255, 255, 255, 0.18) 100%
+  );
+}
+

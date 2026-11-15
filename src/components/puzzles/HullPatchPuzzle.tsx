@@ -1,17 +1,27 @@
-import { useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { CheckCircle2, ShieldAlert, X } from 'lucide-react';
 import { useGameStore } from '../../store/gameStore';
 
 export default function HullPatchPuzzle() {
+  const activePuzzle = useGameStore((s) => s.activePuzzle);
   const completePuzzle = useGameStore((s) => s.completePuzzle);
   const closePuzzle = useGameStore((s) => s.closePuzzle);
 
+  const seed = activePuzzle?.instanceSeed ?? 1;
+  const { target, initialPatch } = useMemo(() => {
+    const s1 = ((seed * 1664525 + 1013904223) >>> 0);
+    const s2 = ((s1 * 1664525 + 1013904223) >>> 0);
+    const tx = 20 + (s1 % 62); // 20..81
+    const ty = 22 + (s2 % 56); // 22..77
+    const px = tx > 50 ? 18 : 82;
+    const py = ty > 50 ? 22 : 76;
+    return { target: { x: tx, y: ty }, initialPatch: { x: px, y: py } };
+  }, [seed]);
+
   const areaRef = useRef<HTMLDivElement>(null);
-  const [patchPos, setPatchPos] = useState({ x: 22, y: 74 });
+  const [patchPos, setPatchPos] = useState(initialPatch);
   const [dragging, setDragging] = useState(false);
 
-  // Target leak is at (68%, 45%)
-  const target = { x: 68, y: 45 };
   const dist = Math.hypot(patchPos.x - target.x, patchPos.y - target.y);
   const alignment = Math.max(0, Math.round(100 - dist * 2.1));
   const aligned = dist <= 8;

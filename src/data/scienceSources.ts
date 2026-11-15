@@ -22,9 +22,9 @@ export const NASA_SCIENCE_SOURCES: ScienceSourceItem[] = [
   },
   {
     title: 'NASA ISS Water Recovery Milestone',
-    gameFeature: 'Water Recycler & Hydration balance',
+    gameFeature: 'Urine + Humidity Recovery Pipeline vs. Sealed Solid Waste Containment',
     factSummary:
-      'On the International Space Station, up to ~98% of water is recycled to minimize heavy resupply launches.',
+      'On the ISS, urine distillate and cabin humidity condensate pass through filtration, purification, and quality verification to recover ~98% of water, while solid waste is sealed separately.',
     url: 'https://www.nasa.gov/missions/station/iss-research/nasa-achieves-water-recovery-milestone-on-international-space-station/',
   },
   {
@@ -36,9 +36,9 @@ export const NASA_SCIENCE_SOURCES: ScienceSourceItem[] = [
   },
   {
     title: 'NASA Orion Crew Systems & Radiation Shelter',
-    gameFeature: 'Radiation Shelter & Water-Barrier Blocks',
+    gameFeature: 'Continuous Structural Shelter + Water Bags + Consumable Polyethylene Liners',
     factSummary:
-      'Water and dense supplies arranged around crew quarters act as hydrogen-rich shielding during solar particle storms.',
+      'Structural shelter bulkheads, stored water bags, and deployable polyethylene liners contain hydrogen-rich shielding that reduces solar particle radiation.',
     url: 'https://www.nasa.gov/reference/crew-systems/',
   },
   {
@@ -52,28 +52,28 @@ export const NASA_SCIENCE_SOURCES: ScienceSourceItem[] = [
 
 export const SIMULATION_ASSUMPTIONS_LIST = [
   {
-    rule: '0–100% Simplified Resource Scale',
+    rule: 'Continuous Time-Scaled Simulation (48s = 1 Sol)',
     detail:
-      'Oxygen, Water, Battery, Food, CO₂, Pressure, Temperature Safety, and Radiation Protection use 0–100 percentage points in Cadet Mode instead of kg/day or kWh.',
+      'Resources, crew conditions, crop growth, and water recovery flow continuously during active gameplay and never freeze just because the astronaut is walking or exploring.',
   },
   {
-    rule: 'Turn-Based Mission Days (Sols)',
+    rule: 'Individual Astronaut Conditions & Nutrition vs. Stamina',
     detail:
-      'Resources update when the player selects End Day, never draining uncontrollably while kids read the manual or inspect the 3D exterior.',
+      'All 4 astronauts track separate Health, Hydration, Nutrition, and Physical Stamina. Eating restores Nutrition, which gradually rebuilds stamina alongside rest.',
   },
   {
-    rule: 'Baseline Daily Game Rates',
+    rule: 'Liquid Water Recovery vs. Solid Waste Separation',
     detail:
-      'Crew uses -8 O₂, -8 Water, -8 Food, +12 CO₂ per Sol. Active systems provide +10 O₂ (-6 Batt), +6 Water (-4 Batt), -14 CO₂ (-4 Batt), +4 Food (-4 Batt, -2 Water). Solar adds +22 Batt (+8 during Mars Dust Storm).',
+      'Urine and cabin humidity pass through filtration, purification, and quality checks into potable water; solid waste stays sealed separately and never enters water recovery.',
   },
   {
-    rule: '17-Point Cargo Loadout',
+    rule: 'Time-Scaled Hydroponic Crops & Structural Shielding',
     detail:
-      'Cargo Points are an educational game-balance limit so learners trade off rations, repair kits, and emergency reserves.',
+      'Greenhouse crops require time, water, and grow-light power before harvesting. Structural radiation shelter walls provide continuous protection, enhanced by water bags and consumable liners.',
   },
   {
-    rule: 'Fictional Low-Voltage Puzzle Circuits',
+    rule: 'Compressed Earth Rescue Cinematic',
     detail:
-      'Red/Yellow/Black puzzle circuits and Apollo 13-inspired adapter slots are simplified educational models, not real spacecraft wiring diagrams.',
+      'If Stage 3 Safety Failure triggers, the crew enters safe-state shelter and an Earth rescue rocket transit is shown at compressed cinematic speed (real Mars/Moon transit takes days to months).',
   },
 ];

@@ -1,26 +1,61 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { BookOpen, CheckCircle2, HelpCircle, X, Zap } from 'lucide-react';
 import { useGameStore } from '../../store/gameStore';
 
 type WireColor = 'red' | 'yellow' | 'black';
 
-const SOURCES: { id: WireColor; label: string; colorHex: string; portTarget: WireColor }[] = [
-  { id: 'red', label: 'RED · +12V PWR', colorHex: '#FF5B68', portTarget: 'red' },
-  { id: 'yellow', label: 'YELLOW · CTRL', colorHex: '#FFB84D', portTarget: 'yellow' },
-  { id: 'black', label: 'BLACK · GND', colorHex: '#94A3B8', portTarget: 'black' },
+function seededShuffle<T>(items: T[], seed: number): T[] {
+  const copy = [...items];
+  let s = (seed || 1) >>> 0;
+  for (let i = copy.length - 1; i > 0; i--) {
+    s = (s * 1664525 + 1013904223) >>> 0;
+    const j = s % (i + 1);
+    const tmp = copy[i];
+    copy[i] = copy[j];
+    copy[j] = tmp;
+  }
+  return copy;
+}
+
+const PORT_SETS = [
+  ['PORT A', 'PORT B', 'PORT C'],
+  ['BUS 1', 'BUS 2', 'BUS 3'],
+  ['TERM X', 'TERM Y', 'TERM Z'],
 ];
 
-// Shuffled order for right-side ports so player actually matches them
-const DEST_PORTS: { id: WireColor; label: string; colorHex: string }[] = [
-  { id: 'yellow', label: 'PORT B · CTRL', colorHex: '#FFB84D' },
-  { id: 'black', label: 'PORT C · GND', colorHex: '#94A3B8' },
-  { id: 'red', label: 'PORT A · PWR+', colorHex: '#FF5B68' },
-];
+const VOLTAGES = ['+12V', '+24V', '+28V'];
 
 export default function CircuitPuzzle() {
+  const activePuzzle = useGameStore((s) => s.activePuzzle);
   const completePuzzle = useGameStore((s) => s.completePuzzle);
   const closePuzzle = useGameStore((s) => s.closePuzzle);
   const openModal = useGameStore((s) => s.openModal);
+
+  const seed = activePuzzle?.instanceSeed ?? 1;
+
+  const { sources, destPorts } = useMemo(() => {
+    const volt = VOLTAGES[seed % VOLTAGES.length];
+    const portLabels = PORT_SETS[(seed >>> 2) % PORT_SETS.length];
+
+    const baseSources: { id: WireColor; label: string; colorHex: string; portTarget: WireColor }[] = [
+      { id: 'red', label: `RED · ${volt} PWR`, colorHex: '#FF5B68', portTarget: 'red' },
+      { id: 'yellow', label: 'YELLOW · CTRL', colorHex: '#FFB84D', portTarget: 'yellow' },
+      { id: 'black', label: 'BLACK · GND', colorHex: '#94A3B8', portTarget: 'black' },
+    ];
+    const basePorts: { id: WireColor; label: string; colorHex: string }[] = [
+      { id: 'red', label: `${portLabels[0]} · PWR+`, colorHex: '#FF5B68' },
+      { id: 'yellow', label: `${portLabels[1]} · CTRL`, colorHex: '#FFB84D' },
+      { id: 'black', label: `${portLabels[2]} · GND`, colorHex: '#94A3B8' },
+    ];
+
+    const sShuffled = seededShuffle(baseSources, seed + 17);
+    let dShuffled = seededShuffle(basePorts, seed + 509);
+    // Ensure destination order never trivially equals source order
+    if (dShuffled.every((p, idx) => p.id === sShuffled[idx].id)) {
+      dShuffled = [dShuffled[1], dShuffled[2], dShuffled[0]];
+    }
+    return { sources: sShuffled, destPorts: dShuffled };
+  }, [seed]);
 
   const [selectedSource, setSelectedSource] = useState<WireColor | null>(null);
   const [connected, setConnected] = useState<Record<WireColor, boolean>>({
@@ -111,7 +146,7 @@ export default function CircuitPuzzle() {
                 <p className="text-xs font-semibold uppercase tracking-wider text-[#AAB8C8]">
                   Source Harness Leads
                 </p>
-                {SOURCES.map((src) => {
+                {sources.map((src) => {
                   const isConnected = connected[src.id];
                   const isSelected = selectedSource === src.id;
                   return (
@@ -147,7 +182,7 @@ export default function CircuitPuzzle() {
                 <p className="text-xs font-semibold uppercase tracking-wider text-[#AAB8C8]">
                   Destination Ports
                 </p>
-                {DEST_PORTS.map((port) => {
+                {destPorts.map((port) => {
                   const isConnected = connected[port.id];
                   return (
                     <button

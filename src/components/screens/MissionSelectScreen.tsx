@@ -10,6 +10,7 @@ import {
   Volume2,
   VolumeX,
   Wind,
+  X,
   Zap,
 } from 'lucide-react';
 import { useGameStore } from '../../store/gameStore';
@@ -19,10 +20,14 @@ export default function MissionSelectScreen() {
   const destination = useGameStore((s) => s.destination);
   const difficulty = useGameStore((s) => s.difficulty);
   const savedProgress = useGameStore((s) => s.savedProgress);
+  const savedMission = useGameStore((s) => s.savedMission);
+  const exitNotice = useGameStore((s) => s.exitNotice);
   const selectDestination = useGameStore((s) => s.selectDestination);
   const setDifficulty = useGameStore((s) => s.setDifficulty);
   const setMissionStatus = useGameStore((s) => s.setMissionStatus);
   const startPracticePuzzle = useGameStore((s) => s.startPracticePuzzle);
+  const resumeSavedMission = useGameStore((s) => s.resumeSavedMission);
+  const dismissExitNotice = useGameStore((s) => s.dismissExitNotice);
   const openModal = useGameStore((s) => s.openModal);
   const toggleMute = useGameStore((s) => s.toggleMute);
 
@@ -116,6 +121,31 @@ export default function MissionSelectScreen() {
           </button>
         </div>
       </header>
+
+      {/* Browser-Safe Exit & Save Banner */}
+      {exitNotice && (
+        <div className="relative z-10 max-w-[1440px] w-full mx-auto px-4 sm:px-5 pt-4">
+          <div className="rounded-2xl bg-[#0D1B2A]/95 border border-[#37D67A]/55 px-4 py-3 flex items-center justify-between gap-3 shadow-xl">
+            <div className="space-y-0.5">
+              <p className="text-xs sm:text-sm font-extrabold text-[#37D67A]">
+                {exitNotice.saved && exitNotice.sol
+                  ? `Mission Progress Saved (Sol ${exitNotice.sol} · ${exitNotice.destination === 'mars' ? 'Mars Outpost' : 'Lunar Outpost'})`
+                  : 'Settings & Cadet Progress Saved'}
+              </p>
+              <p className="text-[11px] sm:text-xs text-[#AAB8C8]">
+                Browser tabs cannot be closed automatically by scripts. You can safely close this tab (Ctrl+W / ⌘+W) or continue from the Main Menu below.
+              </p>
+            </div>
+            <button
+              onClick={dismissExitNotice}
+              aria-label="Dismiss exit notice"
+              className="w-8 h-8 rounded-lg bg-[#152A3E] border border-white/15 flex items-center justify-center text-[#AAB8C8] hover:text-white cursor-pointer shrink-0"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Main 3-Column Mission Control Grid */}
       <main className="relative z-10 flex-1 max-w-[1440px] w-full mx-auto p-4 sm:p-5 grid grid-cols-1 lg:grid-cols-[260px_1fr_290px] gap-4 items-start">
@@ -289,8 +319,8 @@ export default function MissionSelectScreen() {
                   </p>
                 </div>
                 <div className="text-xs space-y-1">
-                  <p className="font-bold text-[#37D6F4]">INCLUDED IN SOLS 2–5</p>
-                  <p className="text-[#AAB8C8]">Electrolysis, Apollo 13 Filter & Patch</p>
+                  <p className="font-bold text-[#37D6F4]">DYNAMIC SOLS 1–10</p>
+                  <p className="text-[#AAB8C8]">9 Dynamic Emergencies & Research</p>
                 </div>
               </div>
               <button
@@ -361,19 +391,32 @@ export default function MissionSelectScreen() {
               </div>
             </div>
 
-            <button
-              onClick={() => setMissionStatus('loadout')}
-              className="px-6 py-3 rounded-xl bg-[#152A3E] hover:bg-[#1c3954] border-2 border-[#37D6F4] text-sm font-extrabold text-[#F4F7FB] shadow-[0_0_20px_rgba(55,214,244,0.28)] flex items-center gap-2 cursor-pointer transition-all"
-            >
-              <Play className="w-4 h-4 text-[#37D6F4]" />
-              <span>GO TO EQUIPMENT LOADOUT</span>
-            </button>
+            <div className="flex flex-wrap items-center gap-2.5">
+              {savedMission && (
+                <button
+                  onClick={resumeSavedMission}
+                  className="px-4 py-3 rounded-xl bg-[#37D67A] hover:bg-[#4ee08c] text-[#07111F] text-xs sm:text-sm font-extrabold flex items-center gap-2 cursor-pointer shadow-lg transition-colors"
+                >
+                  <Play className="w-4 h-4" />
+                  <span>
+                    RESUME SAVED (SOL {savedMission.sol} · {savedMission.destination === 'mars' ? 'MARS' : 'MOON'})
+                  </span>
+                </button>
+              )}
+              <button
+                onClick={() => setMissionStatus('loadout')}
+                className="px-6 py-3 rounded-xl bg-[#152A3E] hover:bg-[#1c3954] border-2 border-[#37D6F4] text-sm font-extrabold text-[#F4F7FB] shadow-[0_0_20px_rgba(55,214,244,0.28)] flex items-center gap-2 cursor-pointer transition-all"
+              >
+                <Play className="w-4 h-4 text-[#37D6F4]" />
+                <span>GO TO EQUIPMENT LOADOUT</span>
+              </button>
+            </div>
 
             <div className="text-right">
               <p className="text-xs font-bold text-[#F4F7FB] tabular-nums">
                 TARGET: {isMars ? 'MARS' : 'MOON'}
               </p>
-              <p className="text-[11px] text-[#37D6F4] font-semibold">4 Crew · 5 Sols</p>
+              <p className="text-[11px] text-[#37D6F4] font-semibold">4 Crew · 10 Sols</p>
             </div>
           </div>
         </section>

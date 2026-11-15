@@ -1,4 +1,5 @@
 import CircuitPuzzle from './components/puzzles/CircuitPuzzle';
+import DiagnosticPuzzle from './components/puzzles/DiagnosticPuzzle';
 import FilterAdapterPuzzle from './components/puzzles/FilterAdapterPuzzle';
 import HullPatchPuzzle from './components/puzzles/HullPatchPuzzle';
 import CinematicCanvas from './components/scene/CinematicCanvas';
@@ -13,6 +14,7 @@ import PlanDecisionModal from './components/ui/PlanDecisionModal';
 import RepairManualModal from './components/ui/RepairManualModal';
 import ScienceSourcesModal from './components/ui/ScienceSourcesModal';
 import SettingsPauseModal from './components/ui/SettingsPauseModal';
+import StationInspectModal from './components/ui/StationInspectModal';
 import { useGameStore } from './store/gameStore';
 
 export default function App() {
@@ -30,7 +32,9 @@ export default function App() {
 
       {missionStatus === 'loadout' && <LoadoutScreen />}
 
-      {missionStatus === 'intro' && <CinematicCanvas />}
+      {missionStatus === 'intro' && <CinematicCanvas mode="intro" />}
+
+      {missionStatus === 'rescue-cinematic' && <CinematicCanvas mode="rescue" />}
 
       {missionStatus === 'briefing' && <BriefingModal />}
 
@@ -42,10 +46,13 @@ export default function App() {
       {/* Modals */}
       {activeModal === 'inventory' && <InventoryModal />}
       {activeModal === 'manual' && <RepairManualModal />}
-      {activeModal === 'dashboard' && <MissionControlModal />}
+      {(activeModal === 'dashboard' || activeModal === 'end-day-report') && <MissionControlModal />}
+      {activeModal === 'station-inspect' && <StationInspectModal />}
       {activeModal === 'plan-decision' && <PlanDecisionModal />}
       {activeModal === 'science' && <ScienceSourcesModal />}
-      {(activeModal === 'pause' || activeModal === 'settings') && <SettingsPauseModal />}
+      {(activeModal === 'pause' || activeModal === 'settings' || activeModal === 'exit-confirm') && (
+        <SettingsPauseModal />
+      )}
 
       {/* Repair Puzzles (auto-paused when inspecting Exterior 360 View) */}
       {activePuzzle && !puzzlePaused && activePuzzle.id === 'circuit-reconnect' && (
@@ -56,6 +63,9 @@ export default function App() {
       )}
       {activePuzzle && !puzzlePaused && activePuzzle.id === 'hull-patch' && (
         <HullPatchPuzzle />
+      )}
+      {activePuzzle && !puzzlePaused && activePuzzle.id === 'diagnostic-sequence' && (
+        <DiagnosticPuzzle />
       )}
 
       {/* Mission End Debrief */}

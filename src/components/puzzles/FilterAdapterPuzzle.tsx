@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { BookOpen, CheckCircle2, HelpCircle, Wind, X } from 'lucide-react';
 import { useGameStore } from '../../store/gameStore';
 
@@ -18,10 +18,30 @@ const SLOTS: { slotIndex: number; expected: PartId; label: string; hint: string 
   { slotIndex: 3, expected: 'hepa', label: 'Slot 4 · Top Intake', hint: 'Catches floating dust before air enters' },
 ];
 
+const HOUSING_TITLES = ['Scrubber Housing MK-II', 'Scrubber Housing MK-IV', 'EVA Loop Housing'];
+
+function seededShuffle<T>(items: T[], seed: number): T[] {
+  const copy = [...items];
+  let s = (seed || 1) >>> 0;
+  for (let i = copy.length - 1; i > 0; i--) {
+    s = (s * 1664525 + 1013904223) >>> 0;
+    const j = s % (i + 1);
+    const tmp = copy[i];
+    copy[i] = copy[j];
+    copy[j] = tmp;
+  }
+  return copy;
+}
+
 export default function FilterAdapterPuzzle() {
+  const activePuzzle = useGameStore((s) => s.activePuzzle);
   const completePuzzle = useGameStore((s) => s.completePuzzle);
   const closePuzzle = useGameStore((s) => s.closePuzzle);
   const openModal = useGameStore((s) => s.openModal);
+
+  const seed = activePuzzle?.instanceSeed ?? 1;
+  const shuffledParts = useMemo(() => seededShuffle(PARTS, seed + 131), [seed]);
+  const housingTitle = HOUSING_TITLES[seed % HOUSING_TITLES.length];
 
   const [selectedPart, setSelectedPart] = useState<PartId | null>(null);
   const [placed, setPlaced] = useState<(PartId | null)[]>([null, null, null, null]);
@@ -97,7 +117,7 @@ export default function FilterAdapterPuzzle() {
               <p className="text-xs font-semibold uppercase tracking-wider text-[#AAB8C8]">
                 Available Components
               </p>
-              {PARTS.map((part) => {
+              {shuffledParts.map((part) => {
                 const used = placed.includes(part.id);
                 const selected = selectedPart === part.id;
                 return (
@@ -131,7 +151,7 @@ export default function FilterAdapterPuzzle() {
             {/* Filter Housing Stack (Top -> Bottom visualization, Slot 4 on top down to Slot 1 base) */}
             <div className="space-y-2.5 rounded-2xl bg-[#07111F] border border-white/10 p-4">
               <div className="flex items-center justify-between text-xs font-semibold uppercase tracking-wider text-[#AAB8C8] mb-1">
-                <span>Scrubber Housing</span>
+                <span>{housingTitle}</span>
                 <span className={allCorrect ? 'text-[#37D67A]' : 'text-[#FFB84D]'}>
                   {allCorrect ? 'AIRFLOW ACTIVE' : 'AIRFLOW BLOCKED'}
                 </span>
